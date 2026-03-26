@@ -1,1 +1,30 @@
+groups:
+  - name: app-alerts
+    rules:
 
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanize }}% for service {{ $labels.job }} over the last 5 minutes."
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P95 latency on {{ $labels.job }}"
+          description: "P95 response time is {{ $value | humanize }}s for service {{ $labels.job }}."
+
+      - alert: ServiceDown
+        expr: rate(http_requests_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} appears to be down"
+          description: "No HTTP requests have been received by {{ $labels.job }} for the last 5 minutes."
