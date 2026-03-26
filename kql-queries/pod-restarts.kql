@@ -1,1 +1,18 @@
-
+// Pod Crash & Restart Events — AKS
+KubeEvents
+| where TimeGenerated > ago(6h)
+| where Reason in ("BackOff", "OOMKilling", "Failed", "Unhealthy")
+| summarize
+    EventCount = count()
+  by
+    PodName   = Name,
+    Namespace = Namespace,
+    Reason    = Reason,
+    bin(TimeGenerated, 5m)
+| order by TimeGenerated desc
+| project
+    Time      = TimeGenerated,
+    Namespace,
+    PodName,
+    Reason,
+    EventCount
