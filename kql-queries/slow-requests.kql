@@ -1,1 +1,21 @@
-
+// Slow Requests — P50 / P95 / P99 Latency
+requests
+| where timestamp > ago(1h)
+| summarize
+    p50 = percentile(duration, 50),
+    p95 = percentile(duration, 95),
+    p99 = percentile(duration, 99),
+    count = count()
+  by name
+| where count > 5
+| extend
+    p50_sec = round(p50 / 1000, 2),
+    p95_sec = round(p95 / 1000, 2),
+    p99_sec = round(p99 / 1000, 2)
+| order by p95_sec desc
+| project
+    Endpoint = name,
+    Requests = count,
+    P50_sec  = p50_sec,
+    P95_sec  = p95_sec,
+    P99_sec  = p99_sec
