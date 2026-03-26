@@ -1,1 +1,15 @@
-
+// Error Rate by Operation — Last 24 Hours
+requests
+| where timestamp > ago(24h)
+| summarize
+    total  = count(),
+    failed = countif(success == false)
+  by name
+| extend error_rate = round(100.0 * failed / total, 2)
+| where total > 10
+| order by error_rate desc
+| project
+    Operation     = name,
+    Total         = total,
+    Failed        = failed,
+    ErrorRate_pct = error_rate
